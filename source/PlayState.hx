@@ -1,20 +1,15 @@
 package;
 
 import hjson.HJSON;
+import sys.io.File;
 
 class PlayState {
-	public static function main() {
-		var content = "
-		{
-		    delay: 1
-		    message: Hello, World!
-		}
-		";
-
-		// Parse the file
-		var results = HJSON.parse(content);
-
-		// Show the parsed result
-		trace("Parsed result: " + result);
-	}
+    static public function main():Void {
+        var content = 'delay: 1\nmessage: "Hello, World!"';
+        
+        // Parse HJSON content
+        var result = HJSON.parse(content);
+        
+        trace(result);
+    }
 }
