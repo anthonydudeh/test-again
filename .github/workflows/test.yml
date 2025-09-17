@@ -1,0 +1,33 @@
+name: Run PlayState code bleh
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.4
+
+      - name: Install hxpkg
+        run: |
+          haxelib install hxpkg --global
+          haxelib run --global hxpkg setup
+
+      - name: Install hjson4haxe through hxpkg
+        run: hxpkg install
+
+      - name: Run PlayState.hx
+        run: |
+          haxe -cp source -main PlayState --interp
