@@ -20,13 +20,9 @@ jobs:
         with:
           haxe-version: 4.3.4
 
-      - name: Install hxpkg
+      - name: Install hjson
         run: |
-          haxelib install hxpkg --global
-          haxelib run hxpkg --global setup
-
-      - name: Install hjson4haxe through hxpkg
-        run: hxpkg install
+          haxelib git hjson4haxe https://github.com/anthonydudeh/hjson4haxe
 
       - name: Run PlayState.hx
         run: |
