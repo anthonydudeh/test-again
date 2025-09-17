@@ -1,7 +1,6 @@
 package;
 
 import hjson.HJSON;
-import sys.io.File;
 
 class PlayState {
     static public function main():Void {
