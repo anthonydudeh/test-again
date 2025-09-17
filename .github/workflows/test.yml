@@ -23,7 +23,7 @@ jobs:
       - name: Install hxpkg
         run: |
           haxelib install hxpkg --global
-          haxelib run --global hxpkg setup
+          haxelib run hxpkg --global setup
 
       - name: Install hjson4haxe through hxpkg
         run: hxpkg install
