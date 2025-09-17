@@ -1,0 +1,6 @@
+# poop
+.DS_Store
+# IDE poop
+.vscode
+# haxe poop
+.haxelib
