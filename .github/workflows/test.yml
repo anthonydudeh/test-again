@@ -22,8 +22,8 @@ jobs:
 
       - name: Install hjson4haxe (git)
         run: |
-          set -e
-          haxelib remove hjson4haxe || true
+          haxelib git hjson4haxe https://github.com/anthonydudeh/hjson4haxe
+          haxelib remove hjson4haxe
           haxelib git hjson4haxe https://github.com/anthonydudeh/hjson4haxe
 
       - name: Overwrite HJSONWriter.hx and Tokenizer.hx in installed lib
@@ -31,7 +31,8 @@ jobs:
           set -e
           HAXELIB_SRC="$(haxelib config)/hjson4haxe/git/src"
 
-          cat > "$HAXELIB_SRC/hjson/HJSONWriter.hx" <<'HJSON_WRITER'
+          # ---- HJSONWriter.hx ----
+          cat > "$HAXELIB_SRC/hjson/HJSONWriter.hx" <<'EOF'
 package hjson;
 
 import Reflect;
@@ -39,140 +40,155 @@ import haxe.EReg;
 import StringTools;
 
 class HJSONWriter {
-
-  public static function stringify(value:Dynamic, ?pretty:Bool = true, ?useCommas:Bool = false, ?indent:Int = 0):String {
-    var vt = Type.typeof(value);
-    if (vt == TNull) return "null";
-    if (vt == TInt || vt == TFloat) return Std.string(value);
-    if (vt == TBool) return (value ? "true" : "false");
-    if (vt == TString) return escapeStringIfNeeded(cast value:String);
-    if (vt == TObject) return writeObject(value, pretty, indent, useCommas);
-    return Std.string(value);
-  }
-
-  private static function repeatStr(s:String, n:Int):String {
-    var r = "";
-    for (i in 0...n) r += s;
-    return r;
-  }
-
-  private static function writeObject(obj:Dynamic, pretty:Bool, indent:Int, useCommas:Bool):String {
-    var result = "{";
-    var keys = Reflect.fields(obj);
-    var sep = if(pretty) "\n" else " ";
-    for (i in 0...keys.length) {
-      var key = keys[i];
-      var value = Reflect.field(obj, key);
-      var ind = if(pretty) repeatStr("  ", indent + 1) else "";
-      var re = new EReg("^[a-zA-Z_][a-zA-Z0-9_]*$", "");
-      var keyStr = if (re.match(key)) key else "\"" + StringTools.replace(StringTools.replace(key, "\\", "\\\\"), "\"", "\\\"") + "\"";
-      result += sep + ind + keyStr + ": " + stringify(value, pretty, useCommas, indent + 1);
-      if (useCommas && i < keys.length - 1) result += ",";
+    public static function stringify(value:Dynamic, ?pretty:Bool = true, ?useCommas:Bool = false, ?indent:Int = 0):String {
+        var vt = Type.typeof(value);
+        if (vt == TNull) return "null";
+        if (vt == TInt || vt == TFloat) return Std.string(value);
+        if (vt == TBool) return (value ? "true" : "false");
+        if (vt == TString) return escapeStringIfNeeded(cast value:String);
+        if (vt == TObject) return writeObject(value, pretty, indent, useCommas);
+        return Std.string(value);
     }
-    if (pretty && keys.length > 0) result += "\n" + repeatStr("  ", indent);
-    result += "}";
-    return result;
-  }
 
-  private static function writeArray(arr:Array<Dynamic>, pretty:Bool, indent:Int, useCommas:Bool):String {
-    var result = "[";
-    var sep = if(pretty) "\n" else " ";
-    for (i in 0...arr.length) {
-      var value = arr[i];
-      var ind = if(pretty) repeatStr("  ", indent + 1) else "";
-      result += sep + ind + stringify(value, pretty, useCommas, indent + 1);
-      if (useCommas && i < arr.length - 1) result += ",";
+    private static function repeatStr(s:String, n:Int):String {
+        var r = "";
+        for (i in 0...n) r += s;
+        return r;
     }
-    if (pretty && arr.length > 0) result += "\n" + repeatStr("  ", indent);
-    result += "]";
-    return result;
-  }
 
-  private static function escapeStringIfNeeded(str:String):String {
-    var re = new EReg("^[a-zA-Z0-9_]+$", "");
-    if (re.match(str)) return str;
-    return "\"" + StringTools.replace(StringTools.replace(str, "\\", "\\\\"), "\"", "\\\"") + "\"";
-  }
+    private static function writeObject(obj:Dynamic, pretty:Bool, indent:Int, useCommas:Bool):String {
+        var result = "{";
+        var keys = Reflect.fields(obj);
+        var sep = if(pretty) "\n" else " ";
+
+        for (i in 0...keys.length) {
+            var key = keys[i];
+            var value = Reflect.field(obj, key);
+            var ind = if(pretty) repeatStr("  ", indent + 1) else "";
+
+            var re = new EReg("^[a-zA-Z_][a-zA-Z0-9_]*$", "");
+            var keyStr = if (re.match(key)) key else "\"" + StringTools.replace(StringTools.replace(key, "\\", "\\\\"), "\"", "\\\"") + "\"";
+
+            result += sep + ind + keyStr + ": " + stringify(value, pretty, useCommas, indent + 1);
+
+            if (useCommas && i < keys.length - 1) result += ",";
+        }
+
+        if (pretty && keys.length > 0) result += "\n" + repeatStr("  ", indent);
+        result += "}";
+        return result;
+    }
+
+    private static function writeArray(arr:Array<Dynamic>, pretty:Bool, indent:Int, useCommas:Bool):String {
+        var result = "[";
+        var sep = if(pretty) "\n" else " ";
+
+        for (i in 0...arr.length) {
+            var value = arr[i];
+            var ind = if(pretty) repeatStr("  ", indent + 1) else "";
+            result += sep + ind + stringify(value, pretty, useCommas, indent + 1);
+            if (useCommas && i < arr.length - 1) result += ",";
+        }
+
+        if (pretty && arr.length > 0) result += "\n" + repeatStr("  ", indent);
+        result += "]";
+        return result;
+    }
+
+    private static function escapeStringIfNeeded(str:String):String {
+        var re = new EReg("^[a-zA-Z0-9_]+$", "");
+        if (re.match(str)) return str;
+        return "\"" + StringTools.replace(StringTools.replace(str, "\\", "\\\\"), "\"", "\\\"") + "\"";
+    }
 }
-HJSON_WRITER
+EOF
 
-          cat > "$HAXELIB_SRC/hjson/tokenizer/Tokenizer.hx" <<'TOKENIZER'
+          # ---- Tokenizer.hx ----
+          cat > "$HAXELIB_SRC/hjson/tokenizer/Tokenizer.hx" <<'EOF'
 package hjson.tokenizer;
 
 class Tokenizer {
-  public var text:String;
-  public var pos:Int = 0;
-  public var length:Int;
+    public var text:String;
+    public var pos:Int = 0;
+    public var length:Int;
 
-  public function new(text:String) {
-    this.text = text;
-    this.length = text.length;
-  }
-
-  public function nextToken():Token {
-    skipWhitespace();
-    if (pos >= length) return new Token(TokenType.EOF, "");
-    var c = text.charAt(pos);
-    return switch (c) {
-      case "{": pos++; new Token(TokenType.LEFT_BRACE, "{");
-      case "}": pos++; new Token(TokenType.RIGHT_BRACE, "}");
-      case "[": pos++; new Token(TokenType.LEFT_BRACKET, "[");
-      case "]": pos++; new Token(TokenType.RIGHT_BRACKET, "]");
-      case ":": pos++; new Token(TokenType.COLON, ":");
-      case ",": pos++; new Token(TokenType.COMMA, ",");
-      case '"': readString();
-      case 't', 'f': readBoolean();
-      case 'n': readNull();
-      default:
-        if (isDigit(c) || c == "-") readNumber();
-        else readIdentifier();
+    public function new(text:String) {
+        this.text = text;
+        this.length = text.length;
     }
-  }
 
-  private function skipWhitespace():Void {
-    while (pos < length && isWhitespace(text.charAt(pos))) pos++;
-  }
+    public function nextToken():Token {
+        skipWhitespace();
 
-  private function readString():Token {
-    pos++;
-    var start = pos;
-    while (pos < length && text.charAt(pos) != '"') {
-      if (text.charAt(pos) == "\\") pos++;
-      pos++;
+        if (pos >= length) return new Token(TokenType.EOF, "");
+
+        var c = text.charAt(pos);
+
+        return switch (c) {
+            case "{": pos++; new Token(TokenType.LEFT_BRACE, "{");
+            case "}": pos++; new Token(TokenType.RIGHT_BRACE, "}");
+            case "[": pos++; new Token(TokenType.LEFT_BRACKET, "[");
+            case "]": pos++; new Token(TokenType.RIGHT_BRACKET, "]");
+            case ":": pos++; new Token(TokenType.COLON, ":");
+            case ",": pos++; new Token(TokenType.COMMA, ",");
+            case '"': readString();
+            case 't', 'f': readBoolean();
+            case 'n': readNull();
+            default:
+                if (isDigit(c) || c == "-") readNumber();
+                else readIdentifier();
+        }
     }
-    var value = text.substring(start, pos);
-    pos++;
-    return new Token(TokenType.STRING, value);
-  }
 
-  private function readNumber():Token {
-    var start = pos;
-    while (pos < length && (isDigit(text.charAt(pos)) || text.charAt(pos) == "." || text.charAt(pos) == "-")) pos++;
-    return new Token(TokenType.NUMBER, text.substring(start, pos));
-  }
+    private function skipWhitespace():Void {
+        while (pos < length && isWhitespace(text.charAt(pos))) pos++;
+    }
 
-  private function readBoolean():Token {
-    if (text.substr(pos, 4) == "true") { pos += 4; return new Token(TokenType.BOOLEAN, "true"); }
-    if (text.substr(pos, 5) == "false") { pos += 5; return new Token(TokenType.BOOLEAN, "false"); }
-    return readIdentifier();
-  }
+    private function readString():Token {
+        pos++;
+        var start = pos;
+        while (pos < length && text.charAt(pos) != '"') {
+            if (text.charAt(pos) == "\\") pos++;
+            pos++;
+        }
+        var value = text.substring(start, pos);
+        pos++;
+        return new Token(TokenType.STRING, value);
+    }
 
-  private function readNull():Token {
-    if (text.substr(pos, 4) == "null") { pos += 4; return new Token(TokenType.NULL, "null"); }
-    return readIdentifier();
-  }
+    private function readNumber():Token {
+        var start = pos;
+        while (pos < length && (isDigit(text.charAt(pos)) || text.charAt(pos) == "." || text.charAt(pos) == "-")) pos++;
+        return new Token(TokenType.NUMBER, text.substring(start, pos));
+    }
 
-  private function readIdentifier():Token {
-    var start = pos;
-    var stopChars = "{}[]:,";
-    while (pos < length && !isWhitespace(text.charAt(pos)) && stopChars.indexOf(text.charAt(pos)) == -1) pos++;
-    return new Token(TokenType.IDENTIFIER, text.substring(start, pos));
-  }
+    private function readBoolean():Token {
+        if (text.substr(pos, 4) == "true") { pos += 4; return new Token(TokenType.BOOLEAN, "true"); }
+        if (text.substr(pos, 5) == "false") { pos += 5; return new Token(TokenType.BOOLEAN, "false"); }
+        return readIdentifier();
+    }
 
-  private function isDigit(c:String):Bool { return c >= "0" && c <= "9"; }
-  private function isWhitespace(c:String):Bool { return c == " " || c == "\n" || c == "\r" || c == "\t"; }
+    private function readNull():Token {
+        if (text.substr(pos, 4) == "null") { pos += 4; return new Token(TokenType.NULL, "null"); }
+        return readIdentifier();
+    }
+
+    private function readIdentifier():Token {
+        var start = pos;
+        var stopChars = "{}[]:,";
+        while (pos < length && !isWhitespace(text.charAt(pos)) && stopChars.indexOf(text.charAt(pos)) == -1) pos++;
+        return new Token(TokenType.IDENTIFIER, text.substring(start, pos));
+    }
+
+    private function isDigit(c:String):Bool {
+        return c >= "0" && c <= "9";
+    }
+
+    private function isWhitespace(c:String):Bool {
+        return c == " " || c == "\n" || c == "\r" || c == "\t";
+    }
 }
-TOKENIZER
+EOF
 
       - name: List haxelib
         run: haxelib list
