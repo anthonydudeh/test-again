@@ -31,8 +31,7 @@ jobs:
           set -e
           HAXELIB_SRC="$(haxelib config)/hjson4haxe/git/src"
 
-          # Overwrite HJSONWriter.hx (Haxe 4.3.4-friendly)
-          cat > "$HAXELIB_SRC/hjson/HJSONWriter.hx" <<'EOF'
+          cat > "$HAXELIB_SRC/hjson/HJSONWriter.hx" <<'HJSON_WRITER'
 package hjson;
 
 import Reflect;
@@ -46,14 +45,14 @@ class HJSONWriter {
     if (vt == TNull) return "null";
     if (vt == TInt || vt == TFloat) return Std.string(value);
     if (vt == TBool) return (value ? "true" : "false");
-    if (vt == TString) return escapeStringIfNeeded(cast value);
+    if (vt == TString) return escapeStringIfNeeded(cast value:String);
     if (vt == TObject) return writeObject(value, pretty, indent, useCommas);
     return Std.string(value);
   }
 
   private static function repeatStr(s:String, n:Int):String {
     var r = "";
-    for(i in 0...n) r += s;
+    for (i in 0...n) r += s;
     return r;
   }
 
@@ -61,16 +60,16 @@ class HJSONWriter {
     var result = "{";
     var keys = Reflect.fields(obj);
     var sep = if(pretty) "\n" else " ";
-    for(i in 0...keys.length) {
+    for (i in 0...keys.length) {
       var key = keys[i];
       var value = Reflect.field(obj, key);
       var ind = if(pretty) repeatStr("  ", indent + 1) else "";
       var re = new EReg("^[a-zA-Z_][a-zA-Z0-9_]*$", "");
-      var keyStr = if(re.match(key)) key else "\"" + StringTools.replace(StringTools.replace(key, "\\", "\\\\"), "\"", "\\\"") + "\"";
+      var keyStr = if (re.match(key)) key else "\"" + StringTools.replace(StringTools.replace(key, "\\", "\\\\"), "\"", "\\\"") + "\"";
       result += sep + ind + keyStr + ": " + stringify(value, pretty, useCommas, indent + 1);
-      if(useCommas && i < keys.length - 1) result += ",";
+      if (useCommas && i < keys.length - 1) result += ",";
     }
-    if(pretty && keys.length > 0) result += "\n" + repeatStr("  ", indent);
+    if (pretty && keys.length > 0) result += "\n" + repeatStr("  ", indent);
     result += "}";
     return result;
   }
@@ -78,13 +77,13 @@ class HJSONWriter {
   private static function writeArray(arr:Array<Dynamic>, pretty:Bool, indent:Int, useCommas:Bool):String {
     var result = "[";
     var sep = if(pretty) "\n" else " ";
-    for(i in 0...arr.length) {
+    for (i in 0...arr.length) {
       var value = arr[i];
       var ind = if(pretty) repeatStr("  ", indent + 1) else "";
       result += sep + ind + stringify(value, pretty, useCommas, indent + 1);
-      if(useCommas && i < arr.length - 1) result += ",";
+      if (useCommas && i < arr.length - 1) result += ",";
     }
-    if(pretty && arr.length > 0) result += "\n" + repeatStr("  ", indent);
+    if (pretty && arr.length > 0) result += "\n" + repeatStr("  ", indent);
     result += "]";
     return result;
   }
@@ -95,10 +94,9 @@ class HJSONWriter {
     return "\"" + StringTools.replace(StringTools.replace(str, "\\", "\\\\"), "\"", "\\\"") + "\"";
   }
 }
-EOF
+HJSON_WRITER
 
-          # Overwrite Tokenizer.hx (Haxe 4.3.4-friendly)
-          cat > "$HAXELIB_SRC/hjson/tokenizer/Tokenizer.hx" <<'EOF'
+          cat > "$HAXELIB_SRC/hjson/tokenizer/Tokenizer.hx" <<'TOKENIZER'
 package hjson.tokenizer;
 
 class Tokenizer {
@@ -174,7 +172,7 @@ class Tokenizer {
   private function isDigit(c:String):Bool { return c >= "0" && c <= "9"; }
   private function isWhitespace(c:String):Bool { return c == " " || c == "\n" || c == "\r" || c == "\t"; }
 }
-EOF
+TOKENIZER
 
       - name: List haxelib
         run: haxelib list
