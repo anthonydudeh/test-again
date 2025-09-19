@@ -4,16 +4,14 @@ import hjson.HJSON;
 
 class PlayState {
     static public function main() {
-        // testing the parsing fun.
-        var jsonStr = '{ name: "Anthony", age: 21, active: true }';
-        var data = HJSON.parse(jsonStr);
+        var hjsonStuff = '{ name: "Anthony", age: 21, active: true }';
+        var data = HJSON.parse(hjsonStuff);
 
         trace("Name: " + data.name);
         trace("Age: " + data.age);
         trace("Active: " + data.active);
 
-        // test stringify
-        var jsonOut = HJSON.stringify(data, true, true);
-        trace("Output:\n" + jsonStr); // fixed var name
+        var output = HJSON.stringify(data, true, true);
+        trace("Output:\n" + output);
     }
 }
