@@ -14,6 +14,6 @@ class PlayState {
 
         // test stringify
         var jsonOut = HJSON.stringify(data, true, true);
-        trace("Output:\n" + hjsonOut);
+        trace("Output:\n" + jsonStr); // fixed var name
     }
 }
