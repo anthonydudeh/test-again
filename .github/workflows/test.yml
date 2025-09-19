@@ -29,5 +29,5 @@ jobs:
 
       - name: Run PlayState.hx
         run: |
-          haxe -cp source -lib hjson4haxe -main PlayState --interp
+          haxe test.hxml
  
