@@ -1,0 +1,4 @@
+-cp source
+-lib hjson4haxe
+-main PlayState
+--interp
